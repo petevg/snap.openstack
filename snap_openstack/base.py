@@ -158,6 +158,17 @@ class OpenStackSnap(object):
         with open(config_file, 'r') as config:
             self.configuration = yaml.load(config)
 
+    def _patch_env(self, utils, setup):
+        '''Add values from snap config to snap_env.
+
+        Note that if there are duplicate keys in the snap config and
+        snap environment, we'll clobber the keys in the environment.
+        '''
+        snap_config = utils.snap_config(
+            keys=setup.get('snap-config-keys', []))
+        for key in snap_config.keys():
+            utils.snap_env[key] = snap_config[key]
+
     def setup(self):
         '''Perform any pre-execution snap setup
 
@@ -174,6 +185,8 @@ class OpenStackSnap(object):
             for directory in setup.get('dirs', []):
                 dir_name = directory.format(**utils.snap_env)
                 utils.ensure_dir(dir_name, perms=DEFAULT_DIR_MODE)
+
+            self._patch_env(utils, setup)
 
             _render_templates(setup.get('templates', []), utils.snap_env,
                               DEFAULT_FILE_MODE, 'root', 'root')
@@ -214,6 +227,8 @@ class OpenStackSnap(object):
             _msg = 'Invalid entry point type: {}'.format(cmd_type)
             LOG.error(_msg)
             raise ValueError(_msg)
+
+        self._patch_env(utils, setup=self.configuration['setup'])
 
         if cmd_type == DEFAULT_EP_TYPE:
             cmd = [entry_point['binary'].format(**utils.snap_env)]

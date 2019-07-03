@@ -38,6 +38,11 @@ MOCK_SNAP_ENV = {
     'snap_data': '/var/snap/keystone/x1',
     'snap': '/snap/keystone/current',
 }
+MOCK_SNAP_CONFIG = {
+    'foo': 'bar',
+    'baz': 'qux',
+    'quux': None
+}
 
 
 class TestOpenStackSnapExecute(test_base.TestCase):
@@ -70,6 +75,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         '''Mock SnapUtils code'''
         mock_utils_obj = mock_utils.return_value
         mock_utils_obj.snap_env = MOCK_SNAP_ENV
+        mock_utils_obj.snap_config.return_value = MOCK_SNAP_CONFIG
         return mock_utils_obj
 
     @patch.object(base, 'SnapFileRenderer')
@@ -78,7 +84,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
     def test_base_snap_config(self, mock_os, mock_utils,
                               mock_renderer):
         '''Ensure wrapped binary called with full args list'''
-        self.mock_snap_utils(mock_utils)
+        mock_utils_obj = self.mock_snap_utils(mock_utils)
         snap = base.OpenStackSnap(os.path.join(TEST_DIR,
                                                'snap-openstack.yaml'))
         mock_os.path.exists.side_effect = self.mock_exists
@@ -94,6 +100,8 @@ class TestOpenStackSnapExecute(test_base.TestCase):
              'keystone.conf.d'],
             {},
         )
+        self.assertEqual(mock_utils_obj.snap_env['foo'], 'bar')
+        self.assertTrue(mock_utils_obj.snap_env['quux'] is None)
 
     @patch.object(base, 'SnapFileRenderer')
     @patch('snap_openstack.base.SnapUtils')
@@ -281,6 +289,7 @@ class TestOpenStackSnapSetup(test_base.TestCase):
         '''Mock SnapUtils code'''
         mock_utils_obj = mock_utils.return_value
         mock_utils_obj.snap_env = MOCK_SNAP_ENV
+        mock_utils_obj.snap_config.return_value = MOCK_SNAP_CONFIG
         mock_utils_obj.ensure_dir.return_value = None
         mock_utils_obj.chmod.return_value = None
         mock_utils_obj.chown.return_value = None
@@ -326,6 +335,8 @@ class TestOpenStackSnapSetup(test_base.TestCase):
                  is_file=True)
         ]
         mock_utils_obj.ensure_dir.assert_has_calls(expected, any_order=True)
+        self.assertEqual(mock_utils_obj.snap_env['foo'], 'bar')
+        self.assertTrue(mock_utils_obj.snap_env['quux'] is None)
 
 
 class TestSnapUtils(test_base.TestCase):
@@ -348,6 +359,31 @@ class TestSnapUtils(test_base.TestCase):
             call('TMPDIR'),
         ]
         mock_os.environ.get.assert_has_calls(expected, any_order=True)
+
+    @patch.object(utils, 'subprocess')
+    @patch.object(utils, 'os')
+    def test_snap_config(self, mock_os, mock_subprocess):
+        '''snap_config fetch snapctl vals from the environment.'''
+        faux_config = {'foo': 'bar', 'baz': 'qux', 'quux': ''}
+
+        def faux_check_output(commands):
+            '''Replacement for check output.
+
+            We expect this to be called with a list of commands,
+            the last of which is the key that we're looking for.
+            '''
+            return faux_config[commands[-1]].encode('utf-8')
+
+        mock_subprocess.check_output = faux_check_output
+
+        keys = faux_config.keys()
+
+        snap_utils = utils.SnapUtils()
+        snap_config = snap_utils.snap_config(keys)
+
+        self.assertEqual(snap_config['foo'], 'bar')
+        self.assertEqual(snap_config['baz'], 'qux')
+        self.assertTrue(snap_config['quux'] is None)
 
     @patch.object(utils, 'os')
     def test_ensure_dir(self, mock_os):
