@@ -38,6 +38,11 @@ MOCK_SNAP_ENV = {
     'snap_data': '/var/snap/keystone/x1',
     'snap': '/snap/keystone/current',
 }
+MOCK_SNAP_CONFIG = {
+    'foo': 'bar',
+    'baz': 'qux',
+    'quux': None
+}
 
 
 class TestOpenStackSnapExecute(test_base.TestCase):
@@ -281,6 +286,7 @@ class TestOpenStackSnapSetup(test_base.TestCase):
         '''Mock SnapUtils code'''
         mock_utils_obj = mock_utils.return_value
         mock_utils_obj.snap_env = MOCK_SNAP_ENV
+        mock_utils_obj.snap_config.return_value = MOCK_SNAP_CONFIG
         mock_utils_obj.ensure_dir.return_value = None
         mock_utils_obj.chmod.return_value = None
         mock_utils_obj.chown.return_value = None
@@ -326,6 +332,8 @@ class TestOpenStackSnapSetup(test_base.TestCase):
                  is_file=True)
         ]
         mock_utils_obj.ensure_dir.assert_has_calls(expected, any_order=True)
+        self.assertEqual(mock_utils_obj.snap_env['foo'], 'bar')
+        self.assertTrue(mock_utils_obj.snap_env['quux'] is None)
 
 
 class TestSnapUtils(test_base.TestCase):
@@ -348,6 +356,34 @@ class TestSnapUtils(test_base.TestCase):
             call('TMPDIR'),
         ]
         mock_os.environ.get.assert_has_calls(expected, any_order=True)
+
+    @patch.object(utils, 'subprocess')
+    @patch.object(utils, 'os')
+    def test_snap_config(self, mock_os, mock_subprocess):
+        '''
+        Given a set of keys, snap_config should attempt to fetch those
+        keys from the environment, then return them to us.
+        '''
+        faux_config = {'foo': 'bar', 'baz': 'qux', 'quux': ''}
+
+        def faux_check_output(commands):
+            '''
+            We expect this to be called with a list of commands,
+            the last of which is the key that we're looking for.
+            '''
+            return faux_config[commands[-1]].encode('utf-8')
+
+        mock_subprocess.check_output = faux_check_output
+
+        keys = faux_config.keys()
+
+        snap_utils = utils.SnapUtils()
+        snap_config = snap_utils.snap_config(keys)
+
+        self.assertEqual(snap_config['foo'], 'bar')
+        self.assertEqual(snap_config['baz'], 'qux')
+        self.assertTrue(snap_config['quux'] is None)
+
 
     @patch.object(utils, 'os')
     def test_ensure_dir(self, mock_os):

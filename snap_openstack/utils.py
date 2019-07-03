@@ -18,6 +18,7 @@ import grp
 import logging
 import os
 import pwd
+import subprocess
 
 LOG = logging.getLogger(__name__)
 
@@ -58,6 +59,28 @@ class SnapUtils(object):
         @return dict of all SNAP* environment variables indexed in lower case
         '''
         return self._snap_env
+
+    def snap_config(self, keys):
+        '''Given a list of keys, return the snap config for those keys.
+
+        If they key hasn't been set, set a null value.
+
+        @return dict containings keys and values in snap config.
+        '''
+        snap_config = {}
+
+        for key in keys:
+            # TODO: iterating through the keys is a little slow, as
+            # we make a lot of snapctl calls. OTOH, I'm not sure that
+            # we want to take responsibilty for parsing the return of
+            # "snap get <snapname>" -- there doesn't appear to be a
+            # --yaml option, or any other way of ensuring a
+            # consistently formatted return.
+            ret = subprocess.check_output(
+                ['snapctl', 'get', key]).decode('utf-8').strip()
+            snap_config[key] = ret or None
+
+        return snap_config
 
     def ensure_dir(self, path, is_file=False, perms=0o750):
         '''Ensure a directory exists

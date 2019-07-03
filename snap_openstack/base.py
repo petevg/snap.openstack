@@ -175,6 +175,14 @@ class OpenStackSnap(object):
                 dir_name = directory.format(**utils.snap_env)
                 utils.ensure_dir(dir_name, perms=DEFAULT_DIR_MODE)
 
+            # Add values from snap config to snap_env. Note that if
+            # there are duplicate keys in the snap config and snap
+            # environment, we'll clobber the keys in the environment.
+            snap_config = utils.snap_config(
+                keys=setup.get('snap-config-keys', []))
+            for key in snap_config.keys():
+                utils.snap_env[key] = snap_config[key]
+
             _render_templates(setup.get('templates', []), utils.snap_env,
                               DEFAULT_FILE_MODE, 'root', 'root')
 
