@@ -36,8 +36,10 @@ def main():
     if os.path.exists(config_path):
         LOG.debug('Using snap wrapper: {}'.format(config_path))
         s_openstack = OpenStackSnap(config_path)
-        s_openstack.setup()
-        s_openstack.execute(sys.argv)
+        if sys.argv[1] == 'setup':
+            s_openstack.setup()
+        else:
+            s_openstack.execute(sys.argv)
     else:
         LOG.error('Unable to find snap-openstack.yaml configuration file')
         sys.exit(1)
