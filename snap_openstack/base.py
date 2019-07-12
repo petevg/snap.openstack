@@ -170,9 +170,14 @@ class OpenStackSnap(object):
             utils.snap_env[key] = snap_config[key]
 
     def setup(self):
-        '''Perform any pre-execution snap setup
+        '''Pre-launch setup.
 
-        Run this method prior to use of the execute method.
+        Write out templates that might be shared between daemons and
+        perform other setup tasks.
+
+        This is generally executed during a seperate invocation of the
+        script, before running "snap-openstack launch foo"
+
         '''
         utils = SnapUtils()
         setup = self.configuration['setup']
@@ -207,17 +212,17 @@ class OpenStackSnap(object):
                 else:
                     LOG.debug('Path not found: {}'.format(target_path))
 
-    def execute(self, argv):
-        '''Execute snap command building out configuration and log options'''
+    def launch(self, argv):
+        '''Launch a daemon, building out configuration and log options'''
         utils = SnapUtils()
 
-        entry_point = self.configuration['entry_points'].get(argv[1])
+        entry_point = self.configuration['entry_points'].get(argv[2])
         if not entry_point:
-            _msg = 'Unable to find entry point for {}'.format(argv[1])
+            _msg = 'Unable to find entry point for {}'.format(argv[2])
             LOG.error(_msg)
             raise ValueError(_msg)
 
-        other_args = argv[2:]
+        other_args = argv[3:]
         LOG.debug(entry_point)
 
         # Build out command to run

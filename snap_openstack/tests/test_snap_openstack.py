@@ -90,8 +90,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         mock_os.path.exists.side_effect = self.mock_exists
         mock_os.environ = {}
         mock_os.path.basename.side_effect = 'keystone.conf'
-        snap.execute(['snap-openstack',
-                      'keystone-manage'])
+        snap.launch(['snap-openstack', 'launch', 'keystone-manage'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/bin/keystone-manage',
             ['/snap/keystone/current/bin/keystone-manage',
@@ -115,8 +114,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         mock_os.path.exists.side_effect = self.mock_exists_overrides
         mock_os.environ = {}
         mock_os.path.basename.side_effect = 'keystone.conf'
-        snap.execute(['snap-openstack',
-                      'keystone-manage'])
+        snap.launch(['snap-openstack', 'launch', 'keystone-manage'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/bin/keystone-manage',
             ['/snap/keystone/current/bin/keystone-manage',
@@ -139,9 +137,10 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         mock_os.path.exists.side_effect = self.mock_exists
         mock_os.environ = {}
         mock_os.path.basename.side_effect = 'keystone.conf'
-        snap.execute(['snap-openstack',
-                      'keystone-manage',
-                      'db', 'sync'])
+        snap.launch(['snap-openstack',
+                     'launch',
+                     'keystone-manage',
+                     'db', 'sync'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/bin/keystone-manage',
             ['/snap/keystone/current/bin/keystone-manage',
@@ -164,8 +163,9 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         mock_os.path.exists.side_effect = self.mock_exists
         mock_os.environ = {}
         self.assertRaises(ValueError,
-                          snap.execute,
+                          snap.launch,
                           ['snap-openstack',
+                           'launch',
                            'keystone-api'])
 
     @patch.object(base, 'SnapFileRenderer')
@@ -184,8 +184,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         if sys.version_info > (3, 0):
             builtin = 'builtins'
         with patch('{}.open'.format(builtin), mock_open(), create=True):
-            snap.execute(['snap-openstack',
-                          'keystone-uwsgi'])
+            snap.launch(['snap-openstack', 'launch', 'keystone-uwsgi'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/bin/uwsgi',
             ['/snap/keystone/current/bin/uwsgi', '--master',
@@ -214,8 +213,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
         if sys.version_info > (3, 0):
             builtin = 'builtins'
         with patch('{}.open'.format(builtin), mock_open(), create=True):
-            snap.execute(['snap-openstack',
-                          'keystone-uwsgi'])
+            snap.launch(['snap-openstack', 'launch', 'keystone-uwsgi'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/bin/uwsgi',
             ['/snap/keystone/current/bin/uwsgi', '--master',
@@ -236,8 +234,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
                                                'snap-openstack.yaml'))
         mock_os.path.exists.side_effect = self.mock_exists
         mock_os.environ = {}
-        snap.execute(['snap-openstack',
-                      'keystone-nginx'])
+        snap.launch(['snap-openstack', 'launch', 'keystone-nginx'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/usr/sbin/nginx',
             ['/snap/keystone/current/usr/sbin/nginx', '-g',
@@ -257,8 +254,7 @@ class TestOpenStackSnapExecute(test_base.TestCase):
                                                'snap-openstack.yaml'))
         mock_os.path.exists.side_effect = self.mock_exists_overrides
         mock_os.environ = {}
-        snap.execute(['snap-openstack',
-                      'keystone-nginx'])
+        snap.launch(['snap-openstack', 'launch', 'keystone-nginx'])
         mock_os.execvpe.assert_called_with(
             '/snap/keystone/current/usr/sbin/nginx',
             ['/snap/keystone/current/usr/sbin/nginx', '-g',
@@ -278,8 +274,9 @@ class TestOpenStackSnapExecute(test_base.TestCase):
                                                'snap-openstack.yaml'))
         mock_os.path.exists.side_effect = self.mock_exists
         self.assertRaises(ValueError,
-                          snap.execute,
+                          snap.launch,
                           ['snap-openstack',
+                           'launch',
                            'keystone-broken'])
 
 

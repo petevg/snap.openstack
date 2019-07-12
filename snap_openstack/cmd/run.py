@@ -33,11 +33,20 @@ def main():
         sys.exit(1)
     config_path = os.path.join(snap,
                                CONFIG_FILE)
-    if os.path.exists(config_path):
-        LOG.debug('Using snap wrapper: {}'.format(config_path))
-        s_openstack = OpenStackSnap(config_path)
-        s_openstack.setup()
-        s_openstack.execute(sys.argv)
-    else:
+    if not os.path.exists(config_path):
         LOG.error('Unable to find snap-openstack.yaml configuration file')
         sys.exit(1)
+
+    LOG.debug('Using snap wrapper: {}'.format(config_path))
+    s_openstack = OpenStackSnap(config_path)
+
+    if sys.argv[1] == 'setup':
+        s_openstack.setup()
+        sys.exit(0)
+
+    if sys.argv[1] == 'launch':
+        s_openstack.launch(sys.argv)
+        sys.exit(0)
+
+    LOG.error("Missing argument. Must specific 'setup' or 'launch.'")
+    sys.exit(1)
