@@ -16,6 +16,7 @@
 
 import logging
 import os
+import subprocess
 import sys
 
 from snap_openstack.base import OpenStackSnap
@@ -45,6 +46,12 @@ def main():
         sys.exit(0)
 
     if sys.argv[1] == 'launch':
+        database_ready = subprocess.check_output(
+            ['snapctl', 'get', 'database.ready']).decode('utf-8').strip()
+        if not database_ready.lower() == 'true':
+            LOG.info("Database backend access not yet setup. Exiting.")
+            sys.exit(0)
+
         s_openstack.launch(sys.argv)
         sys.exit(0)
 
