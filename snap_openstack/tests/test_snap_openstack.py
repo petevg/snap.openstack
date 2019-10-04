@@ -361,7 +361,17 @@ class TestSnapUtils(test_base.TestCase):
     @patch.object(utils, 'os')
     def test_snap_config(self, mock_os, mock_subprocess):
         '''snap_config fetch snapctl vals from the environment.'''
-        faux_config = {'foo': 'bar', 'baz': 'qux', 'quux': ''}
+        faux_config = {
+            'foo': 'questions.foo',
+            'baz': 'questions.baz',
+            'quux': 'questions.quux',
+
+        }
+        faux_snap_config = {
+            'questions.foo': 'bar',
+            'questions.baz': 'qux',
+            'questions.quux': '',
+        }
 
         def faux_check_output(commands):
             '''Replacement for check output.
@@ -369,11 +379,11 @@ class TestSnapUtils(test_base.TestCase):
             We expect this to be called with a list of commands,
             the last of which is the key that we're looking for.
             '''
-            return faux_config[commands[-1]].encode('utf-8')
+            return faux_snap_config[commands[-1]].encode('utf-8')
 
         mock_subprocess.check_output = faux_check_output
 
-        keys = faux_config.keys()
+        keys = faux_config
 
         snap_utils = utils.SnapUtils()
         snap_config = snap_utils.snap_config(keys)

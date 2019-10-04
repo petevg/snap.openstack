@@ -165,7 +165,7 @@ class OpenStackSnap(object):
         snap environment, we'll clobber the keys in the environment.
         '''
         snap_config = utils.snap_config(
-            keys=setup.get('snap-config-keys', []))
+            keys=setup.get('snap-config-keys', {}))
         for key in snap_config.keys():
             utils.snap_env[key] = snap_config[key]
 

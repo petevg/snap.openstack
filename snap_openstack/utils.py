@@ -69,7 +69,7 @@ class SnapUtils(object):
         '''
         snap_config = {}
 
-        for key in keys:
+        for our_key, snap_key in keys.items():
             # Iterating through the keys is a little slow, as we make
             # a lot of snapctl calls. OTOH, I'm not sure that we want
             # to take responsibilty for parsing the return of "snap
@@ -77,8 +77,8 @@ class SnapUtils(object):
             # option, or any other way of ensuring a consistently
             # formatted return.
             ret = subprocess.check_output(
-                ['snapctl', 'get', key]).decode('utf-8').strip()
-            snap_config[key] = ret or None
+                ['snapctl', 'get', snap_key]).decode('utf-8').strip()
+            snap_config[our_key] = ret or None
 
         return snap_config
 
